@@ -174,7 +174,7 @@ ipmi_ret_t ipmi_netfn_router(ipmi_netfn_t netfn, ipmi_cmd_t cmd, ipmi_request_t 
 
 
 
-static int send_ipmi_message(sd_bus_message *req, unsigned char seq, unsigned char netfn, unsigned char cmd, unsigned char *buf, unsigned char len) {
+static int send_ipmi_message(sd_bus_message *req, unsigned char seq, unsigned char netfn, unsigned char lun, unsigned char cmd, unsigned char cc, unsigned char *buf, unsigned char len) {
 
     sd_bus_error error = SD_BUS_ERROR_NULL;
     sd_bus_message *reply = NULL, *m=NULL;
@@ -273,7 +273,8 @@ static int handle_ipmi_command(sd_bus_message *m, void *user_data, sd_bus_error
     hexdump(ipmiio,  (void*)response, resplen);
 
     // Send the response buffer from the ipmi command
-    r = send_ipmi_message(m, sequence, netfn, cmd, response, resplen);
+    r = send_ipmi_message(m, sequence, netfn, lun, cmd, response[0],
+		    ((unsigned char *)response) + 1, resplen - 1);
     if (r < 0) {
         fprintf(stderr, "Failed to send the response message\n");
         return -1;
